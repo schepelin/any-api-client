@@ -30,6 +30,7 @@ def bind_method(**config):
         accepts_params = config.get('accepts_params', [])
         preprocessor = config.get('preprocessor', lambda x: x)
         timeout = config.get('timeout', 10)
+        response_class = config.get('response_class', BaseAPIResponse)
 
         def __init__(self, api, *args, **kwargs):
             self.params = {}
@@ -42,14 +43,14 @@ def bind_method(**config):
                 try:
                     self.params[self.accepts_params[index]] = self.preprocessor(value)
                 except IndexError:
-                    raise ApiClientError("Too many arguments supplied")
+                    raise ApiClientError(u'Too many arguments supplied')
 
             for key, value in kwargs.iteritems():
 
                 if value is None:
                     continue
                 if key in self.params:
-                    raise ApiClientError("Parameter %s already supplied" % key)
+                    raise ApiClientError(u'Parameter %s already supplied' % key)
 
                 self.params[key] = self.preprocessor(value)
 
@@ -82,10 +83,10 @@ def bind_method(**config):
                 try:
                     content = json.loads(response.text)
                 except ValueError as e:
-                    raise ApiClientError('Unable to parse response, '
-                                         'not valid JSON. Response: %s' % response.text)
+                    raise ApiClientError(u'Unable to parse response, '
+                                         u'not valid JSON. Response: %s' % response.text)
 
-            return BaseAPIResponse(status_code=status_code, data=content)
+            return self.response_class(status_code=status_code, data=content)
 
     def _call(api, *args, **kwargs):
         method = APIMethod(api, *args, **kwargs)
