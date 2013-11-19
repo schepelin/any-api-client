@@ -5,8 +5,8 @@ import json
 
 import requests
 
-from any_api_client.response import BaseAPIResponse
-
+from response import BaseAPIResponse
+from preprocessors import default_preprocessor
 
 __all__ = (
     'bind_method',
@@ -28,13 +28,14 @@ def bind_method(**config):
         path = config['path']
         method = config.get('method', 'GET')
         accepts_params = config.get('accepts_params', [])
-        preprocessor = config.get('preprocessor', lambda x: x)
+        preprocessor = config.get('preprocessor') or default_preprocessor
         timeout = config.get('timeout', 10)
         response_class = config.get('response_class', BaseAPIResponse)
 
         def __init__(self, api, *args, **kwargs):
+            self.api = api
             self.params = {}
-            self._build_params(args[1:], kwargs)
+            self._build_params(args, kwargs)
 
         def _build_params(self, args, kwargs):
             for index, value in enumerate(args):
